@@ -131,6 +131,30 @@ const removeProductFromCart = async (req, res) => {
     }
 };
 
+const applyCouponToCart = async (req, res) => {
+    try {
+        const { cartId } = req.params;
+        console.log(cartId);
+        
+        const { couponCode } = req.body;
+        console.log(couponCode);
+
+        const result = await cartService.applyCoupon(cartId, couponCode);
+
+        if (result.isCartNotFound) {
+            return Response.failResponse(req, res, null, messages.cartNotFound, 404);
+        }
+        if (result.isCouponInvalid) {
+            return Response.failResponse(req, res, null, messages.invalidCoupon, 400);
+        }
+
+        return Response.successResponse(req, res, result, messages.couponApplied, 200);
+    } catch (error) {
+        console.error("Apply Coupon Error:", error);
+        return Response.errorResponse(req, res, error);
+    }
+};
+
 
 module.exports = {
     createCart,
@@ -139,5 +163,6 @@ module.exports = {
     getCartById,
     deleteCart,
     removeProductFromCart,
-    addProductToCart
+    applyCouponToCart,
+    addProductToCart,
 };

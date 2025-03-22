@@ -34,7 +34,19 @@ const quantityMin= "Quantity must be at least 1"
 
 const productsRequired= "Products array is required"
 const productsMin= "At least one product is required"
+
+
+const couponNotFound= "Coupon code is invalid or does not exist."
+const couponExpired= "This coupon has expired."
+const couponApplied= "Coupon applied successfully."
+const couponLimitReached= "This coupon has reached its usage limit."
+const couponMinPurchase= "Minimum purchase amount not met for this coupon."
 module.exports = {
+    couponLimitReached,
+    couponApplied,
+    couponMinPurchase,
+    couponExpired,
+    couponNotFound,
     productIdString,
     userIdString,
     quantityNumber,

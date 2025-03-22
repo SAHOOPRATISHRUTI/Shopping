@@ -94,9 +94,25 @@ const addProductValidator = async (req, res, next) => {
         return Response.errorResponse(req, res, error, 400);
     }
 };
+const applyCouponValidator = async (req, res, next) => {
+    try {
+        const bodySchema = Joi.object({
+            couponCode: Joi.string().required().messages({
+                "any.required": "Coupon code is required",
+                "string.base": "Coupon code must be a string",
+            }),
+        });
 
+        await bodySchema.validateAsync(req.body);
+        next();
+    } catch (error) {
+        console.error("Coupon Validation Error:", error);
+        return Response.errorResponse(req, res, error, 400);
+    }
+};
 module.exports = {
     createCartValidator,
     updateCartValidator,
-    addProductValidator
+    applyCouponValidator,
+    addProductValidator,
 };
