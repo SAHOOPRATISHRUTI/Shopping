@@ -1,16 +1,56 @@
-const registered ="User Registered Succesfully";
-const duplicateEmail  = "Email already exists";
-const InvalidLogin="Invalid credentials";
-const loginSuccess="Login successful";
-const productCreated="Product Created"
+const registered = "User Registered Succesfully";
+const duplicateEmail = "Email already exists";
+const InvalidLogin = "Invalid credentials";
+const loginSuccess = "Login successful";
+const productCreated = "Product Created"
 const productNotFound = "Product Not Found"
-const productFetched ="Product Fetched Successfully"
-const allProductsFetched  ="All product fetched successfuly"
-const updateSuccess ="Update Successfully"
-const deleted ="Deleted Successfully"
-const tokenRequired ="Token Required"
-const invalidToken ="Invalid Token"
-module.exports={
+const productFetched = "Product Fetched Successfully"
+const allProductsFetched = "All product fetched successfuly"
+const updateSuccess = "Update Successfully"
+const deleted = "Deleted Successfully"
+const tokenRequired = "Token Required"
+const invalidToken = "Invalid Tokent "
+
+// Cart messages
+const cartCreated = "Cart created successfully."
+const cartUpdated = "Cart updated successfully."
+const cartFetched = "Cart details fetched successfully."
+const cartNotFound = "Cart not found."
+const cartDeleted = "Cart deleted successfully."
+
+const productAddedToCart= "Product added to cart successfully"
+const productRemovedFromCart= "Product removed from cart successfully"
+const productNotInCart= "Product is not in the cart"
+
+const userIdRequired= "User ID is required"
+const userIdString= "User ID must be a string"
+
+const productIdRequired= "Product ID is required"
+const productIdString= "Product ID must be a string"
+
+const quantityRequired= "Quantity is required"
+const quantityNumber= "Quantity must be a number"
+const quantityMin= "Quantity must be at least 1"
+
+const productsRequired= "Products array is required"
+const productsMin= "At least one product is required"
+module.exports = {
+    productIdString,
+    userIdString,
+    quantityNumber,
+    quantityRequired,
+    productsMin,
+    productsRequired,
+    quantityMin,
+    productIdRequired,
+    productNotInCart,
+    userIdRequired,
+    productRemovedFromCart,
+    productAddedToCart,
+    cartUpdated,
+    cartFetched,
+    cartDeleted,
+    cartNotFound,
     registered,
     loginSuccess,
     InvalidLogin,
@@ -22,5 +62,6 @@ module.exports={
     updateSuccess,
     deleted,
     tokenRequired,
-    invalidToken
+    invalidToken,
+    cartCreated
 }
