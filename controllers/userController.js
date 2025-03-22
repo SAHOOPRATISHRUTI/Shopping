@@ -11,8 +11,6 @@ const register = async(req,res)=>{
         if (result.isDuplicateEmail) {
           return Response.failResponse(req, res, null, messages.duplicateEmail, 500);
         }
-    
-       
      
         return Response.successResponse(req,res,result,messages.registered,200)
 

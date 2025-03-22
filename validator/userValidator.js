@@ -1,27 +1,22 @@
 const Joi = require("joi");
-const Responses = require("../helpers/response");
-// const { errorLog } = require("../middlewares/errorLog");
 
-// Regular expression for allowed input formats
 const regularExpression = /^[0-9a-zA-Z .,:;()/\-_]+$/;
 
-/** Authentication Validator Middleware */
-const authValidator = async (req, res, next) => {
-  try {
-    /** Header Schema Validation */
-    // const headerSchema = Joi.object({
-    //   authorization: Joi.string().required().messages({
-    //     "any.required": "Authorization header is required",
-    //   }),
-    //   ip: Joi.string().optional(),
-    // }).unknown(true); // Allow additional headers
+/** Register Validator */
+const userRegisterValidator = async (req, res, next) => {
 
-    /** Body Schema Validation */
+  try {
+    const headerSchema = Joi.object({
+      headers: Joi.object({
+        // authorization: Joi.required(),
+        ip: Joi.string(),
+      }).unknown(true),
+    });
     const bodySchema = Joi.object({
       name: Joi.string()
         .trim()
         .pattern(regularExpression)
-        
+        .required()
         .messages({
           "any.required": "Name is required",
           "string.pattern.base": "Name contains invalid characters",
@@ -47,21 +42,53 @@ const authValidator = async (req, res, next) => {
           "any.only": "Invalid role, must be 'admin' or 'user'",
         }),
     });
-
-    // Validate Headers
-    // await headerSchema.validateAsync(req.headers, { abortEarly: false });
-
-    // Validate Body
-    await bodySchema.validateAsync(req.body, { abortEarly: false });
-
-    next(); // Proceed to the next middleware/controller
+    await headerSchema.validateAsync({ headers: req.headers });
+    await bodySchema.validateAsync(req.body);
+    next();
   } catch (error) {
-    console.log("Validation Error:", error);
+    console.log(error);
     // errorLog(error);
+    return Responses.errorResponse(req, res, error, 200);
+  }
+}
 
-    return Responses.errorResponse(req, res, error, 400);
+
+
+const loginValidatorSchema = async (req, res, next) => {
+  try {
+    const headerSchema = Joi.object({
+      headers: Joi.object({
+        // authorization: Joi.required(),
+        ip: Joi.string(),
+      }).unknown(true),
+    });
+    const bodySchema = Joi.object({
+      email: Joi.string()
+    .email({ tlds: { allow: false } })
+    .required()
+    .messages({
+      "string.email": "Invalid email format",
+      "any.required": "Email is required",
+    }),
+  password: Joi.string()
+    .min(6)
+    .required()
+    .messages({
+      "any.required": "Password is required",
+      "string.min": "Password must be at least 6 characters",
+    }),
+    });
+    await headerSchema.validateAsync({ headers: req.headers });
+    await bodySchema.validateAsync(req.body);
+    next();
+  } catch (error) {
+    console.log(error);
+    // errorLog(error);
+    return Responses.errorResponse(req, res, error, 200);
   }
 };
 
-module.exports = authValidator;
-
+module.exports = {
+  userRegisterValidator,
+  loginValidatorSchema,
+};
