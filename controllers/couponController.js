@@ -2,6 +2,7 @@ const cartService = require("../services/cartService");
 const Response = require("../helpers/response");
 const messages = require("../contstants/constantMessage");
 const couponService = require("../services/couponService");
+const Coupon = require("../models/couponModel");
 /** Apply Coupon */
 const applyCouponToCart = async (req, res) => {
     try {
@@ -37,70 +38,68 @@ const applyCouponToCart = async (req, res) => {
     }
 };
 const createCoupon = async (req, res) => {
-    try {
-        const result = await couponService.createCoupon(req.body);
+    const result = await couponService.createCoupon(req.body);
 
-        if (result.isDuplicate) {
-            return Response.failResponse(req, res, null, messages.couponExists, 400);
-        }
-
-        return Response.successResponse(req, res, result, messages.couponCreated, 201);
-    } catch (error) {
-        console.error("Create Coupon Error:", error);
-        return Response.errorResponse(req, res, error);
+    if (result.error) {
+        return Response.failResponse(req, res, null, result.message, 400);
     }
+
+    return Response.successResponse(req, res, result.coupon, messages.couponCreated, 201);
 };
 
 /** Get All Coupons */
 const getAllCoupons = async (req, res) => {
-    try {
-        const result = await couponService.getAllCoupons();
-        return Response.successResponse(req, res, result, messages.couponsFetched, 200);
-    } catch (error) {
-        console.error("Get All Coupons Error:", error);
-        return Response.errorResponse(req, res, error);
-    }
+    const result = await couponService.getAllCoupons();
+    return Response.successResponse(req, res, result.coupons, messages.couponsFetched, 200);
 };
 
 /** Get Coupon By Code */
 const getCouponByCode = async (req, res) => {
-    try {
-        const { code } = req.params;
-        const result = await couponService.getCouponByCode(code);
+    const { code } = req.params;
+    const result = await couponService.getCouponByCode(code);
 
-        if (!result) {
-            return Response.failResponse(req, res, null, messages.couponNotFound, 404);
-        }
-
-        return Response.successResponse(req, res, result, messages.couponFetched, 200);
-    } catch (error) {
-        console.error("Get Coupon By Code Error:", error);
-        return Response.errorResponse(req, res, error);
+    if (result.error) {
+        return Response.failResponse(req, res, null, result.message, 404);
     }
+
+    return Response.successResponse(req, res, result.coupon, messages.couponFetched, 200);
 };
 
 /** Delete Coupon */
 const deleteCoupon = async (req, res) => {
-    try {
-        const { couponId } = req.params;
-        const result = await couponService.deleteCoupon(couponId);
+    const { couponId } = req.params;
+    const result = await couponService.deleteCoupon(couponId);
 
-        if (result.isNotFound) {
+    if (result.error) {
+        return Response.failResponse(req, res, null, result.message, 404);
+    }
+
+    return Response.successResponse(req, res, result.coupon, messages.couponDeleted, 200);
+};
+
+const updateCouponById = async (req, res) => {
+    const { couponId } = req.params;
+    const updateData = req.body;
+
+    try {
+        const updatedCoupon = await Coupon.findByIdAndUpdate(couponId, updateData, { new: true, runValidators: true });
+
+        if (!updatedCoupon) {
             return Response.failResponse(req, res, null, messages.couponNotFound, 404);
         }
 
-        return Response.successResponse(req, res, result, messages.couponDeleted, 200);
+        return Response.successResponse(req, res, updatedCoupon, messages.couponUpdated, 200);
     } catch (error) {
-        console.error("Delete Coupon Error:", error);
+        console.error("Update Coupon Error:", error);
         return Response.errorResponse(req, res, error);
     }
 };
-
 
 module.exports = {
     createCoupon,
     getAllCoupons,
     getCouponByCode,
     deleteCoupon,
-    applyCouponToCart
+    updateCouponById,
+    applyCouponToCart,
 };

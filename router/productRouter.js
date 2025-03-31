@@ -10,5 +10,6 @@ router.put("/updateProduct/:id",verifyToken,productValidator.updateProductValida
 router.get("/getProductByid/:id",verifyToken,productValidator.getProductByIdValidator,productController.getProductByid);
 router.delete("/deleteProduct/:id",verifyToken,productValidator.deleteProductValidator,productController.deleteProduct);
 router.get("/getAllProduct",verifyToken,productController.getAllProduct);
+// done
 
 module.exports = router;

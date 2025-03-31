@@ -52,7 +52,7 @@ const updateProduct = async(req,res)=>{
         const result= await Product.updateProduct(req.params.id, req.body);
 
         if(!result){
-            return Response.failResponse(req,res,null,messages.productCreated,200)
+            return Response.failResponse(req,res,null,messages.productNotFound,200)
         }
         return Response.successResponse(req,res,result,messages.updateSuccess,200)
     }catch(error){

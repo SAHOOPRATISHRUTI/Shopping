@@ -1,3 +1,34 @@
+// const express = require("express");
+// const couponController = require("../controllers/couponController");
+// const couponValidator = require("../validator/couponValidator");
+// const verifyToken = require("../middlewares/authMiddleware");
+
+// const router = express.Router();
+
+// // Apply Coupon to Cart
+// router.post("/apply/:cartId", verifyToken, couponValidator.applyCouponValidator, couponController.applyCouponToCart);
+// // router.post(
+// //     "/apply-coupon/:cartId",
+// //     verifyToken,
+// //     couponValidator.applyCouponValidator,
+// //     couponController.applyCouponToCart
+// // );
+
+// router.post("/create", couponValidator.createCouponValidator, couponController.createCoupon);
+
+// /** Get All Coupons */
+// router.get("/all", couponController.getAllCoupons);
+
+// /** Get Coupon By Code */
+// router.get("/:code", couponValidator.getCouponByCodeValidator, couponController.getCouponByCode);
+
+// /** Delete Coupon */
+// router.delete("/:couponId", couponValidator.deleteCouponValidator, couponController.deleteCoupon);
+
+// /** Apply Coupon */
+// // router.post("/apply", couponValidator.applyCouponValidator, couponController.applyCoupon);
+
+// module.exports = router;
 const express = require("express");
 const couponController = require("../controllers/couponController");
 const couponValidator = require("../validator/couponValidator");
@@ -5,27 +36,20 @@ const verifyToken = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
-// Apply Coupon to Cart
+/** Apply Coupon to Cart */
 router.post("/apply/:cartId", verifyToken, couponValidator.applyCouponValidator, couponController.applyCouponToCart);
-// router.post(
-//     "/apply-coupon/:cartId",
-//     verifyToken,
-//     couponValidator.applyCouponValidator,
-//     couponController.applyCouponToCart
-// );
 
-router.post("/create", couponValidator.createCouponValidator, couponController.createCoupon);
+/** Create Coupon */
+router.post("/create", verifyToken, couponValidator.createCouponValidator, couponController.createCoupon);
 
 /** Get All Coupons */
-router.get("/all", couponController.getAllCoupons);
+router.get("/list",verifyToken, couponController.getAllCoupons);
 
 /** Get Coupon By Code */
-router.get("/:code", couponValidator.getCouponByCodeValidator, couponController.getCouponByCode);
+router.get("/:code",verifyToken, couponValidator.getCouponByCodeValidator, couponController.getCouponByCode);
 
 /** Delete Coupon */
-router.delete("/:couponId", couponValidator.deleteCouponValidator, couponController.deleteCoupon);
+router.delete("delete/:couponId", verifyToken, couponValidator.deleteCouponValidator, couponController.deleteCoupon);
 
-/** Apply Coupon */
-// router.post("/apply", couponValidator.applyCouponValidator, couponController.applyCoupon);
-
+router.put('/:couponId', verifyToken, couponValidator.updateCouponValidator, couponController.updateCouponById);
 module.exports = router;

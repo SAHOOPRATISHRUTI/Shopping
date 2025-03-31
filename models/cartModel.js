@@ -20,15 +20,28 @@ const cartSchema = new mongoose.Schema({
             }
         }
     ],
-    totalPrice: {
+    totalPrice: {  // Original total before discount
         type: Number,
         required: true
     },
+    discountPrice: {  // Amount reduced by coupon
+        type: Number,
+        default: 0
+    },
+    finalPrice: {  // Total after discount
+        type: Number
+    },
     coupon: {
-        code: { type: String },  // Coupon code
-        discount: { type: Number, default: 0 },  // Discount amount
-        discountType: { type: String, enum: ["PERCENTAGE", "FIXED"], default: null }  // Discount type
+        code: { type: String },
+        discount: { type: Number, default: 0 },  
+        discountType: { type: String, enum: ["PERCENTAGE", "FIXED"], default: null }  
     }
 }, { timestamps: true });
+
+// ✅ Automatically update finalPrice before saving
+cartSchema.pre("save", function (next) {
+    this.finalPrice = this.totalPrice - this.discountPrice;
+    next();
+});
 
 module.exports = mongoose.model("Cart", cartSchema);

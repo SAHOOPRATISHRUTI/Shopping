@@ -83,6 +83,38 @@ const createCouponValidator = async (req, res, next) => {
       return Response.errorResponse(req, res, error, 400);
     }
   };
+
+
+
+/** Update Coupon Validator */
+const updateCouponValidator = async (req, res, next) => {
+    try {
+        const paramsSchema = Joi.object({
+            couponId: Joi.string().trim().required().messages({
+                "any.required": "Coupon ID is required",
+            }),
+        });
+
+        const bodySchema = Joi.object({
+            code: Joi.string().trim().optional(),
+            discount: Joi.number().positive().optional(),
+            discountType: Joi.string().valid("PERCENTAGE", "FIXED").optional(),
+            minPurchase: Joi.number().positive().optional(),
+            expiresAt: Joi.date().iso().optional(),
+            usageLimit: Joi.number().integer().min(1).optional(),
+        }).min(1).messages({
+            "object.min": "At least one field must be updated",
+        });
+
+        await paramsSchema.validateAsync(req.params);
+        await bodySchema.validateAsync(req.body);
+        next();
+    } catch (error) {
+        console.log(error);
+        return Response.errorResponse(req, res, error, 400);
+    }
+};
+
   
 
 
@@ -91,4 +123,5 @@ module.exports = {
   getCouponByCodeValidator,
   deleteCouponValidator,
   applyCouponValidator,
+  updateCouponValidator
 };

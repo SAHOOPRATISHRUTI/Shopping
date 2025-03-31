@@ -1,50 +1,44 @@
 require("dotenv").config();
-const express = require("express")
+const express = require("express");
 const app = express();
-const socket = require("socket.io"); // Add this
+const socket = require("socket.io");
 const mainRouter = require("./router/index");
 const PORT = process.env.PORT || 8000;
-const bodyParser = require("body-parser")
+const bodyParser = require("body-parser");
 const cors = require("cors");
 const connectDB = require("./dbLayer/connection");
+
+connectDB();
+
+const allowedOrigins = ["http://localhost:3000", "http://localhost:8080"];
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, // Allow cookies
+  })
+);
+
+// ✅ FIX: Move these above routes
+app.use(express.json());  // Parse JSON requests
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(express.json());
-connectDB();
+
+// ✅ FIX: Now define routes after middleware
 app.use("/api", mainRouter);
-const allowOrigin = [
-    "*",
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://192.168.1.125:3000",
-    "http://192.168.1.5:3000",
-    "http://192.168.1.5:3001",
-    "http://192.168.1.8:3000",
-    "http://192.168.1.8:3001",
-    "https://mom.ntspl.co.in",
-    "http://192.168.1.86:4200",
-    "https://localhost",
-    "https://mom.ntspl.co.in",
-];
-const corsOpts = {
-    origin: allowOrigin,
-    methods: ["GET, POST, PUT, DELETE, OPTIONS, PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-};
 
-app.use(cors());
+console.log("Frontend URL:", process.env.FRONTEND_URL);
 
+// ✅ FIX: Socket should use an HTTP server, not `app`
+const server = app.listen(PORT, () => {
+    console.info(`Server is running on port ${PORT}`);
+});
 
-// app.use("/api", mainRouter);
-console.log("frontend", process.env.FRONTEND_URL);
-const io = socket(
-    app.listen(PORT, () => {
-        console.info(`Server is running on port.... ${PORT}`);
-    }),
-    {
-        cors: {
-            origin: process.env.FRONTEND_URL,
-            methods: ["GET, POST, PUT, DELETE, OPTIONS, PATCH"],
-        },
-    }
-);
+// ✅ FIX: Attach socket.io properly
+const io = socket(server, {
+    cors: {
+        origin: process.env.FRONTEND_URL || "http://localhost:3000",
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    },
+});

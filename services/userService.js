@@ -24,19 +24,51 @@ const loginUser = async (email, password) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-        return { isInvalidCredential: true }
-    }
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-        return { isInvalidCredential: true }
+        return { isInvalidCredential: true };
     }
 
-    const token = jwt.sign({ id: user._id, role: user.role },
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        return { isInvalidCredential: true };
+    }
+
+    const token = jwt.sign(
+        { id: user._id, role: user.role },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
     );
-    return { token, role: user.role };
-}
+
+    return { 
+        token, 
+        role: user.role,
+        _id: user._id // 🎯 Added userId in response
+    };
+};
+
+// const loginUser = async (email, password) => {
+//     const user = await User.findOne({ email });
+
+//     if (!user) {
+//         return { isEmailNotRegistered: true }; // 🔹 Specific error for unregistered email
+//     }
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) {
+//         return { isInvalidCredential: true };
+//     }
+
+//     const token = jwt.sign(
+//         { id: user._id, role: user.role },
+//         process.env.JWT_SECRET,
+//         { expiresIn: "1h" }
+//     );
+
+//     return { 
+//         token, 
+//         role: user.role,
+//         _id: user._id 
+//     }; 
+// };
 
 module.exports = {
     registerUser,

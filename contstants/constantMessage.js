@@ -10,7 +10,8 @@ const updateSuccess = "Update Successfully"
 const deleted = "Deleted Successfully"
 const tokenRequired = "Token Required"
 const invalidToken = "Invalid Tokent "
-
+const userNotFound= "User not found."
+const userNotActive= "User is not active."
 // Cart messages
 const cartCreated = "Cart created successfully."
 const cartUpdated = "Cart updated successfully."
@@ -34,14 +35,25 @@ const quantityMin= "Quantity must be at least 1"
 
 const productsRequired= "Products array is required"
 const productsMin= "At least one product is required"
-
-
+const invalidQuantity ="invalid Quantity"
+const insufficientStock ="insufficientStock"
 const couponNotFound= "Coupon code is invalid or does not exist."
 const couponExpired= "This coupon has expired."
 const couponApplied= "Coupon applied successfully."
 const couponLimitReached= "This coupon has reached its usage limit."
 const couponMinPurchase= "Minimum purchase amount not met for this coupon."
-module.exports = {
+
+const invalidCoupon= "Invalid coupon code."
+const expiredCoupon= "Coupon has expired."
+
+const minimumPurchaseNotMet= "Minimum purchase requirement not met."
+
+
+module.exports = {expiredCoupon,
+    invalidCoupon,
+    minimumPurchaseNotMet,
+    insufficientStock,
+    invalidQuantity,
     couponLimitReached,
     couponApplied,
     couponMinPurchase,
@@ -75,5 +87,7 @@ module.exports = {
     deleted,
     tokenRequired,
     invalidToken,
-    cartCreated
+    cartCreated,
+    userNotActive,
+    userNotFound
 }

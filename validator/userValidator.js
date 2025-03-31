@@ -56,35 +56,28 @@ const userRegisterValidator = async (req, res, next) => {
 
 const loginValidatorSchema = async (req, res, next) => {
   try {
-    const headerSchema = Joi.object({
-      headers: Joi.object({
-        // authorization: Joi.required(),
-        ip: Joi.string(),
-      }).unknown(true),
-    });
     const bodySchema = Joi.object({
       email: Joi.string()
-    .email({ tlds: { allow: false } })
-    .required()
-    .messages({
-      "string.email": "Invalid email format",
-      "any.required": "Email is required",
-    }),
-  password: Joi.string()
-    .min(6)
-    .required()
-    .messages({
-      "any.required": "Password is required",
-      "string.min": "Password must be at least 6 characters",
-    }),
+        .email({ tlds: { allow: false } })
+        .required()
+        .messages({
+          "string.email": "Invalid email format",
+          "any.required": "Email is required",
+        }),
+      password: Joi.string()
+        .min(6)
+        .required()
+        .messages({
+          "any.required": "Password is required",
+          "string.min": "Password must be at least 6 characters",
+        }),
     });
-    await headerSchema.validateAsync({ headers: req.headers });
+
     await bodySchema.validateAsync(req.body);
-    next();
+    next(); 
   } catch (error) {
-    console.log(error);
-    // errorLog(error);
-    return Responses.errorResponse(req, res, error, 200);
+    console.error("Validation Error:", error);
+    return Response.errorResponse(req, res, error, 400); 
   }
 };
 
