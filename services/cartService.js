@@ -207,48 +207,101 @@ const Product = require("../models/productModel");
 const Coupon = require("../models/couponModel");
 const User = require("../models/userModel")
 /** 🛒 Create Cart */
-const createCart = async (userId, products) => {
-    // Check if user exists and is active
+const createCart = async (userId, products, couponCode = null) => {
     const user = await User.findById(userId);
     if (!user) return { userNotFound: true };
     if (!user.isActive) return { notActiveUser: true };
 
     let totalPrice = 0;
+    let discountPrice = 0;
+    let finalPrice = 0;
     const productDetails = [];
     const insufficientStockProducts = [];
 
-    // Fetch all products concurrently
+    let cart = await Cart.findOne({ userId });
+
+    // Fetch all requested products
     const productList = await Promise.all(
         products.map(item => Product.findById(item.productId))
     );
 
-    // Validate products
-    products.forEach((item, index) => {
-        const product = productList[index];
+    // Validate products and calculate total price
+    for (let i = 0; i < products.length; i++) {
+        const item = products[i];
+        const product = productList[i];
+
         if (!product) {
             insufficientStockProducts.push({ error: "Product not found", productId: item.productId });
-            return;
+            continue;
         }
         if (item.quantity > product.stock) {
             insufficientStockProducts.push({ error: "Insufficient stock", productId: item.productId });
-            return;
+            continue;
         }
 
         totalPrice += product.price * item.quantity;
         productDetails.push({ productId: item.productId, quantity: item.quantity });
-    });
+    }
 
-    // If there are any product errors, return them
     if (insufficientStockProducts.length > 0) {
         return { errors: insufficientStockProducts };
     }
 
-    // Round total price
-    totalPrice = parseFloat(totalPrice.toFixed(2));
+    // Apply coupon discount if provided
+    let coupon = null;
+    if (couponCode) {
+        coupon = await Coupon.findOne({ code: couponCode });
+        if (coupon) {
+            discountPrice = coupon.discountType === "FIXED"
+                ? coupon.discount
+                : (totalPrice * coupon.discount) / 100;
+        }
+    }
 
-    // Create cart
-    return await Cart.create({ userId, products: productDetails, totalPrice });
+    finalPrice = totalPrice - discountPrice;
+    if (finalPrice < 0) finalPrice = 0;
+
+    if (cart) {
+        productDetails.forEach(newItem => {
+            const existingItem = cart.products.find(item => item.productId.toString() === newItem.productId.toString());
+
+            if (existingItem) {
+                existingItem.quantity += newItem.quantity;
+            } else {
+                cart.products.push(newItem);
+            }
+        });
+
+        // ✅ Fetch product prices dynamically when recalculating totalPrice
+        const updatedProductList = await Promise.all(
+            cart.products.map(item => Product.findById(item.productId))
+        );
+
+        cart.totalPrice = cart.products.reduce((sum, item, index) => {
+            const product = updatedProductList[index];
+            return sum + (product ? product.price * item.quantity : 0);
+        }, 0);
+
+        cart.discountPrice = discountPrice;
+        cart.finalPrice = cart.totalPrice - cart.discountPrice;
+        cart.updatedAt = new Date();
+        await cart.save();
+        return { success: true, cart };
+    }
+
+    // Create a new cart if it doesn't exist
+    cart = await Cart.create({
+        userId,
+        products: productDetails,
+        totalPrice: parseFloat(totalPrice.toFixed(2)),
+        discountPrice,
+        finalPrice: parseFloat(finalPrice.toFixed(2)),
+        coupon
+    });
+
+    return { success: true, cart };
 };
+
 
 
 /** 🛍 Update Cart */
@@ -317,23 +370,31 @@ const addProductToCart = async (cartId, productId, quantity) => {
         return { error: "Insufficient stock", productId };
     }
 
+    // Check if product already exists in cart
     let productExists = cart.products.find(item => item.productId.toString() === productId);
 
     if (productExists) {
-        productExists.quantity += quantity;
+        productExists.quantity += quantity; // Update quantity
     } else {
-        cart.products.push({ productId, quantity });
+        cart.products.push({ productId, quantity }); // Add new product
     }
 
-    cart.totalPrice = cart.products.reduce((sum, item) => {
-        const productPrice = item.productId.equals(product._id) ? product.price : item.productId.price;
-        return sum + productPrice * item.quantity;
+    // 🔄 **Recalculate total price based on all cart items**
+    const updatedProductList = await Promise.all(
+        cart.products.map(item => Product.findById(item.productId))
+    );
+
+    cart.totalPrice = cart.products.reduce((sum, item, index) => {
+        const product = updatedProductList[index];
+        return sum + (product ? product.price * item.quantity : 0);
     }, 0);
 
-    cart.totalPrice = parseFloat(cart.totalPrice.toFixed(2));
+    cart.totalPrice = parseFloat(cart.totalPrice.toFixed(2)); // Ensure 2 decimal places
 
-    return await cart.save();
+    await cart.save();
+    return cart;
 };
+
 
 /** ➖ Remove Product from Cart */
 const removeProductFromCart = async (cartId, productId) => {
@@ -421,8 +482,24 @@ const applyCoupon = async (cartId, couponCode) => {
 
 /** 📦 Get All Carts */
 const getAllCarts = async () => {
-    return await Cart.find().populate("userId").populate("products.productId");
+    const carts = await Cart.find()
+        .populate("userId")
+        .populate("products.productId");
+
+    // ✅ Ensure total price is calculated correctly
+    carts.forEach(cart => {
+        let calculatedTotal = 0;
+        cart.products.forEach(item => {
+            if (item.productId) {
+                calculatedTotal += item.productId.price * item.quantity;
+            }
+        });
+        cart.totalPrice = calculatedTotal; // ✅ Ensure correct total
+    });
+
+    return carts;
 };
+
 
 /** 🔍 Get Cart by ID */
 const getCartById = async (cartId) => {
