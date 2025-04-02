@@ -19,18 +19,20 @@ const register = async(req,res)=>{
         return Response.errorResponse(req,res,error)
     }
 }
+
 const login = async (req, res) => {
     try {
-        console.log("Login attempt for:", req.body.email); // ✅ Only logs email, not password
+        console.log("Login attempt for:", req.body.email); // ✅ Logs email for tracking
 
-        if (!req.body.email || !req.body.password) {
-            return res.status(400).json({ error: true, message: "Email and password are required" });
+        if (!req.body.email) {
+            return res.status(400).json({ error: true, message: "Email is required" });
         }
 
-        const result = await userService.loginUser(req.body.email, req.body.password);
+        // Authenticate user using email only
+        const result = await userService.loginUser(req.body.email);
 
-        if (result.isInvalidCredential) {
-            return Response.failResponse(req, res, null, messages.InvalidLogin, 401); // 🔹 Change 500 → 401 Unauthorized
+        if (result.isEmailNotRegistered) {
+            return Response.failResponse(req, res, null, messages.emailNotRegistered, 404); // 🔹 404 for unregistered email
         }
 
         return Response.successResponse(req, res, result, messages.loginSuccess, 200);
@@ -39,30 +41,6 @@ const login = async (req, res) => {
         return Response.errorResponse(req, res, error);
     }
 };
-// const login = async (req, res) => {
-//     try {
-//         console.log("Login attempt for:", req.body.email); // ✅ Only logs email, not password
-
-//         if (!req.body.email || !req.body.password) {
-//             return res.status(400).json({ error: true, message: "Email and password are required" });
-//         }
-
-//         const result = await userService.loginUser(req.body.email, req.body.password);
-
-//         if (result.isEmailNotRegistered) {
-//             return Response.failResponse(req, res, null, messages.emailNotRegistered, 404); // 🔹 404 for unregistered email
-//         }
-
-//         if (result.isInvalidCredential) {
-//             return Response.failResponse(req, res, null, messages.InvalidLogin, 401); // 🔹 401 for incorrect password
-//         }
-
-//         return Response.successResponse(req, res, result, messages.loginSuccess, 200);
-//     } catch (error) {
-//         console.error("Login Error:", error);
-//         return Response.errorResponse(req, res, error);
-//     }
-// };
 
 
 

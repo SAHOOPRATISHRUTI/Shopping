@@ -20,18 +20,14 @@ const registerUser = async (userData) => {
 
 
 
-const  loginUser = async (email, password) => {
+const loginUser = async (email) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-        return { isInvalidCredential: true };
+        return { isEmailNotRegistered: true }; // 🔹 Email not found
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-        return { isInvalidCredential: true };
-    }
-
+    // Generate JWT since email exists (⚠️ Less Secure)
     const token = jwt.sign(
         { id: user._id, role: user.role },
         process.env.JWT_SECRET,
@@ -41,34 +37,10 @@ const  loginUser = async (email, password) => {
     return { 
         token, 
         role: user.role,
-        _id: user._id // 🎯 Added userId in response
-    };
+        _id: user._id 
+    }; 
 };
 
-// const loginUser = async (email, password) => {
-//     const user = await User.findOne({ email });
-
-//     if (!user) {
-//         return { isEmailNotRegistered: true }; // 🔹 Specific error for unregistered email
-//     }
-
-//     const isMatch = await bcrypt.compare(password, user.password);
-//     if (!isMatch) {
-//         return { isInvalidCredential: true };
-//     }
-
-//     const token = jwt.sign(
-//         { id: user._id, role: user.role },
-//         process.env.JWT_SECRET,
-//         { expiresIn: "1h" }
-//     );
-
-//     return { 
-//         token, 
-//         role: user.role,
-//         _id: user._id 
-//     }; 
-// };
 
 module.exports = {
     registerUser,
