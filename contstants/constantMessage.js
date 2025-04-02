@@ -47,11 +47,11 @@ const invalidCoupon= "Invalid coupon code."
 const expiredCoupon= "Coupon has expired."
 
 const minimumPurchaseNotMet= "Minimum purchase requirement not met."
-
-
-module.exports = {expiredCoupon,
+const subscriptionFetched ="subscriptionFetched"
+const subscriptionCreated ="subscriptionCreated"
+module.exports = {expiredCoupon,subscriptionCreated,
     invalidCoupon,
-    minimumPurchaseNotMet,
+    minimumPurchaseNotMet,subscriptionFetched,
     insufficientStock,
     invalidQuantity,
     couponLimitReached,

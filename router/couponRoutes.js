@@ -31,25 +31,21 @@
 // module.exports = router;
 const express = require("express");
 const couponController = require("../controllers/couponController");
-const couponValidator = require("../validator/couponValidator");
+
 const verifyToken = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
-/** Apply Coupon to Cart */
-router.post("/apply/:cartId", verifyToken, couponValidator.applyCouponValidator, couponController.applyCouponToCart);
 
 /** Create Coupon */
-router.post("/create", verifyToken, couponValidator.createCouponValidator, couponController.createCoupon);
+router.post("/create", couponController.createCoupon);
 
 /** Get All Coupons */
-router.get("/list",verifyToken, couponController.getAllCoupons);
+router.get("/list", couponController.getAllCoupons);
 
 /** Get Coupon By Code */
-router.get("/:code",verifyToken, couponValidator.getCouponByCodeValidator, couponController.getCouponByCode);
+router.get("/:code",verifyToken, couponController.getCouponByCode);
 
-/** Delete Coupon */
-router.delete("delete/:couponId", verifyToken, couponValidator.deleteCouponValidator, couponController.deleteCoupon);
 
-router.put('/:couponId', verifyToken, couponValidator.updateCouponValidator, couponController.updateCouponById);
+
 module.exports = router;
