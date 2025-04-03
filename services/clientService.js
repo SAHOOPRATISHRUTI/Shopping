@@ -4,18 +4,30 @@ const Coupon = require("../models/couponModel");
 
 // Fetch All Active Subscriptions (Latest as per WEF)
 const getActiveSubscriptions = async () => {
-    const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set time to midnight for date-only comparison
 
-    return await Subscription.find({ 
+    // Fetch all active subscriptions sorted by wef date
+    const activeSubscriptions = await Subscription.find({ 
         status: "ACTIVE", 
-        wef: { 
-            $gte: new Date(today + "T00:00:00.000Z") // Get records from today onwards
-        }
+        wef: { $gte: today } // Get today and future records
     })
     .populate("masterSubscription", "name descriptions")
-    .sort({ wef: 1 }) // Sort in ascending order to get the nearest date first
-    .limit(3); // Show only today's record and the nearest future one
+    .sort({ wef: 1 }); // Sort to get the nearest dates first
+
+    // Group by masterSubscription._id and keep only the closest date
+    const closestSubscriptions = {};
+    for (const sub of activeSubscriptions) {
+        const masterId = sub.masterSubscription._id.toString();
+        if (!closestSubscriptions[masterId]) {
+            closestSubscriptions[masterId] = sub; // Store the first (nearest) subscription per masterSubscription._id
+        }
+    }
+
+    // Convert object values back to an array
+    return Object.values(closestSubscriptions);
 };
+
 
 
 
@@ -35,11 +47,11 @@ const registerClient = async (clientData) => {
         throw new Error("Invalid Subscription ID");
     }
 
-    let finalPrice = subscription.sellingPrice;
+    let finalPrice = parseFloat(subscription.sellingPrice); // Ensure it's a number
     let appliedCoupon = null;
     let discountAmount = 0; // 👈 Initialize Discount
 
-    // Validate Coupon if applied
+    // **Only validate coupon if it's provided**
     if (couponCode) {
         const coupon = await Coupon.findOne({
             code: couponCode,
@@ -47,22 +59,21 @@ const registerClient = async (clientData) => {
             endsOn: { $gte: new Date() },
         });
 
-        if (!coupon) {
-            throw new Error("Invalid or Expired Coupon Code");
-        }
+        if (coupon) {
+            appliedCoupon = coupon._id;
 
-        appliedCoupon = coupon._id;
+            // Apply Coupon Discount
+            if (coupon.couponType === "Percentage") {
+                discountAmount = (finalPrice * coupon.couponValue) / 100;
+                finalPrice -= discountAmount;
+            } else if (coupon.couponType === "Fixed") {
+                discountAmount = coupon.couponValue;
+                finalPrice -= discountAmount;
+            }
 
-        // Apply Coupon Discount
-        if (coupon.couponType === "Percentage") {
-            discountAmount = (finalPrice * coupon.couponValue) / 100;
-            finalPrice -= discountAmount;
-        } else if (coupon.couponType === "Fixed") {
-            discountAmount = coupon.couponValue;
-            finalPrice -= discountAmount;
-        }
-
-        if (finalPrice < 0) finalPrice = 0; // Prevent negative price
+            if (finalPrice < 0) finalPrice = 0; // Prevent negative price
+        } 
+        // If coupon is invalid, ignore it (instead of throwing an error)
     }
 
     // Register Client
@@ -80,6 +91,7 @@ const registerClient = async (clientData) => {
     await newClient.save();
     return newClient;
 };
+
 
 
 // Fetch Available Coupons (Active Coupons Based on Registration Date)

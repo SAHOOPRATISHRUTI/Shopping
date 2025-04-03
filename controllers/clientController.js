@@ -30,17 +30,36 @@ exports.getAvailableCoupons = async (req, res) => {
 exports.registerClient = async (req, res) => {
     try {
         const clientData = req.body;
+
+        // **Check for required fields**
+        if (!clientData.name || !clientData.email || !clientData.subscriptionId) {
+            return res.status(400).json({
+                success: false,
+                message: "Name, email, and subscription ID are required.",
+            });
+        }
+
+        // **Call service to register client**
         const newClient = await clientService.registerClient(clientData);
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             message: "Client Registered Successfully",
             data: newClient,
         });
     } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+        console.error("Error registering client:", error); // Log for debugging
+
+        // Differentiate validation errors vs server errors
+        const statusCode = error.message.includes("exists") || error.message.includes("Invalid") ? 400 : 500;
+
+        return res.status(statusCode).json({
+            success: false,
+            message: error.message || "Internal Server Error",
+        });
     }
 };
+
 exports .getAllClients = async (req, res) => {
     try {
         const clients = await clientService.getAllClients();
