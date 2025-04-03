@@ -1,6 +1,6 @@
 
 const Cart = require("../models/cartModel");
-const Product = require("../models/productModel");
+const Product = require("../models/SubscriptionMaster");
 const Coupon = require("../models/couponModel");
 const User = require("../models/userModel")
 /** 🛒 Create Cart */

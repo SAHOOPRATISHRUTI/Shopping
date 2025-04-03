@@ -1,11 +1,10 @@
 const mongoose = require("mongoose");
 
 const subscriptionSchema = new mongoose.Schema({
-    name: {
-        type: String,
+    masterSubscription: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "SubscriptionMaster", // Reference SubscriptionMaster
         required: true,
-        trim: true,
-        uppercase: true, // Normalize to uppercase
     },
     wef: {
         type: Date,
@@ -14,14 +13,14 @@ const subscriptionSchema = new mongoose.Schema({
     displayPrice: {
         type: Number,
         required: true,
-        min: 0, // Must be non-negative
+        min: 0,
     },
     sellingPrice: {
         type: Number,
         required: true,
         validate: {
             validator: function (value) {
-                return value < this.displayPrice; // Selling price must be less than display price
+                return value < this.displayPrice;
             },
             message: "Selling price must be less than display price",
         },
@@ -29,12 +28,17 @@ const subscriptionSchema = new mongoose.Schema({
     maxEmployees: {
         type: Number,
         required: true,
-        min: 1, // Must allow at least 1 employee
+        min: 1,
     },
     validityInDays: {
         type: Number,
         required: true,
-        min: 1, // Minimum validity is 1 day
+        min: 1,
+    },
+    status: {
+        type: String,
+        enum: ["ACTIVE", "DISABLED"],
+        default: "ACTIVE",
     },
     createdAt: {
         type: Date,
@@ -42,7 +46,7 @@ const subscriptionSchema = new mongoose.Schema({
     },
 });
 
-// Ensure uniqueness of subscription name + WEF
-subscriptionSchema.index({ name: 1, wef: 1 }, { unique: true });
+// Ensure uniqueness of masterSubscription + WEF
+subscriptionSchema.index({ masterSubscription: 1, wef: 1 }, { unique: true });
 
 module.exports = mongoose.model("Subscription", subscriptionSchema);
